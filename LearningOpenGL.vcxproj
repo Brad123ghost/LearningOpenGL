@@ -137,8 +137,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ebo.h" />
+    <ClCompile Include="ebo.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="shaderClass.cpp" />
+    <ClCompile Include="vao.cpp" />
+    <ClCompile Include="vbo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="default.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="default.frag">
+      <FileType>Document</FileType>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="shaderClass.h" />
+    <ClInclude Include="vao.h" />
+    <ClInclude Include="vbo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
