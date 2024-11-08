@@ -8,7 +8,9 @@
 class VAO
 {
 public:
+	// ID reference of the Vertex Array Object
 	GLuint ID;
+	// Constructor that generates a VAO ID
 	VAO();
 	
 	void LinkVBO(VBO& VBO, GLuint layout);
