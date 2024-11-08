@@ -13,7 +13,7 @@ public:
 	// Constructor that generates a VAO ID
 	VAO();
 	
-	void LinkVBO(VBO& VBO, GLuint layout);
+	void LinkAttrib(VBO& VBO, GLuint layout, GLuint numComponents, GLenum type, GLsizeiptr stride, void* offset);
 	void Bind();
 	void Unbind();
 	void Delete();
