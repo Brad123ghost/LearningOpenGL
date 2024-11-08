@@ -2,6 +2,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb/stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "shaderClass.h"
 #include "vao.h"
@@ -27,20 +30,44 @@
 //	5, 4, 1 // Upper triangle
 //};
 
+const unsigned int WIDTH = 800;
+const unsigned int HEIGHT = 800;
+
 // Square
+//GLfloat vertices[] =
+//{
+//	// CORDS				// COLORS 		    // Texture cords
+//	-0.5f, -0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower Left corner
+//	-0.5f,  0.5f, 0.0f,		0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper Left corner
+//	 0.5f,  0.5f, 0.0f,		0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper Right corner
+//	 0.5f, -0.5f, 0.0f,		1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower Right corner
+//};
+//
+//GLuint indices[] =
+//{
+//	0, 1, 2, // Upper Triangle
+//	0, 2, 3  // Lower Triangle
+//};
+
+// Pyrimid
 GLfloat vertices[] =
 {
-	// CORDS				// COLORS 		    // Texture cords
-	-0.5f, -0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower Left corner
-	-0.5f,  0.5f, 0.0f,		0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper Left corner
-	 0.5f,  0.5f, 0.0f,		0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper Right corner
-	 0.5f, -0.5f, 0.0f,		1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower Right corner
+	// CORDS				// COLORS 				// Texture cords
+	-0.5f,  0.0f,  0.5f,		0.83f, 0.70f, 0.44f,	0.0f, 0.0f, // Lower Left corner
+	-0.5f,  0.0f, -0.5f,		0.83f, 0.70f, 0.44f,	5.0f, 0.0f, // Lower Right corner
+	 0.5f,  0.0f, -0.5f,		0.83f, 0.70f, 0.44f,	0.0f, 0.0f, // Upper Right corner
+	 0.5f,  0.0f,  0.5f,		0.83f, 0.70f, 0.44f,	5.0f, 0.0f, // Upper Left corner
+	 0.0f,  0.8f,  0.0f,		0.92f, 0.86f, 0.76f,	2.5f, 5.0f  // Top corner
 };
 
 GLuint indices[] =
 {
-	0, 1, 2, // Upper Triangle
-	0, 2, 3  // Lower Triangle
+	0, 1, 2, // Lower Triangle
+	0, 2, 3, // Upper Triangle
+	0, 1, 4, // Left Triangle
+	1, 2, 4, // Front Triangle
+	2, 3, 4, // Right Triangle
+	3, 0, 4  // Back Triangle
 };
 
 int main()
@@ -56,7 +83,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Create a GLFW window
-	GLFWwindow* window = glfwCreateWindow(800, 800, "First OpenGL Window", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "First OpenGL Window", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW Window" << std::endl;
@@ -71,7 +98,7 @@ int main()
 	gladLoadGL();
 
 	// Specify the viewport of OpenGL in the Window
-	glViewport(0, 0, 800, 800);
+	glViewport(0, 0, WIDTH, HEIGHT);
 
 	// Create the vertex shader
 	Shader shaderProgram("default.vert", "default.frag");
@@ -100,18 +127,52 @@ int main()
 	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
 	// Texture
-	Texture stable("stable.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
+	Texture stable("brick.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
 	stable.texUnit(shaderProgram, "tex0", 0);
+
+	// Variables to help with rotation
+	float rotation = 0.0f;
+	double prevTime = glfwGetTime();
+
+	// Enables Depth
+	glEnable(GL_DEPTH_TEST);
 
 	// Mian while loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// Color of background
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-		// Clean back buffer and assign new color to it
-		glClear(GL_COLOR_BUFFER_BIT);
+		// Clean back and depth buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// What shader program to use
 		shaderProgram.Activate();
+
+		// Simple timer
+		double currTime = glfwGetTime();
+		if(currTime - prevTime >= 1/60.0f)
+		{
+			rotation += 0.5f;
+			prevTime = currTime;
+		}
+
+		// Initialize matrices
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 proj = glm::mat4(1.0f);
+
+		// Assign different transformations to each matrix
+		model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
+		proj = glm::perspective(glm::radians(45.0f), (float)(WIDTH/HEIGHT), 0.1f, 100.0f);
+
+		// Inputting the matrices into the vertex shader
+		int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
+
 		// Assigns a value to the uniform; Must always be done after activating the shader
 		glUniform1f(uniID, 0.5f);
 		// Bind texture so that is appears in the window
@@ -119,7 +180,7 @@ int main()
 		// Bind the VAO so OpenGL knows to use it
 		VAO1.Bind();
 		// Draw primitives, number of indices, data type of indices, index of indices
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
