@@ -113,6 +113,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,6 +143,8 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="shaderClass.cpp" />
+    <ClCompile Include="stb.cpp" />
+    <ClCompile Include="texture.cpp" />
     <ClCompile Include="vao.cpp" />
     <ClCompile Include="vbo.cpp" />
   </ItemGroup>
@@ -155,8 +158,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderClass.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="vao.h" />
     <ClInclude Include="vbo.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Downloads HDD\stable.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
