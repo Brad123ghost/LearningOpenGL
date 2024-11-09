@@ -12,17 +12,11 @@ out vec3 color;
 // Outputs texture coord to fragment shader
 out vec2 texCoord;
 
-// Controls the scale of the object
-uniform float scale;
-
-// Inputs needed for 3D rendering
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 proj;
+uniform mat4 camMatrix;
 
 void main()
 {
-	gl_Position = proj * view * model * vec4(aPos, 1.0);
+	gl_Position = camMatrix * vec4(aPos, 1.0);
 	color = aColor;
 	texCoord = aTex;
 }
