@@ -1,6 +1,6 @@
 #include "texture.h"
 
-Texture::Texture(const char* image, const char* texType, GLuint slot, GLenum format, GLenum pixelType)
+Texture::Texture(const char* image, const char* texType, GLuint slot)
 	: type(0)
 	, ID(0)
 {
@@ -27,8 +27,22 @@ Texture::Texture(const char* image, const char* texType, GLuint slot, GLenum for
 	// float flatColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	// glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, flatColor);
 
-	// Assign image to OpenGL Texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, format, pixelType, bytes);
+	if (numColCh == 4)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+	}
+	else if (numColCh == 3)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, widthImg, heightImg, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes);
+	}
+	else if (numColCh == 1)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, widthImg, heightImg, 0, GL_RED, GL_UNSIGNED_BYTE, bytes);
+	}
+	else
+	{
+		throw std::invalid_argument("Automatic Texture type recognition failed");
+	}
 	// Generates MipMap
 	glActiveTexture(GL_TEXTURE0 + slot);
 	unit = slot;
