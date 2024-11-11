@@ -12,6 +12,8 @@ in vec3 currentPos;
 
 // Texture unit from main function
 uniform sampler2D tex0;
+uniform sampler2D tex1;
+
 // Light from main function
 uniform vec4 lightColor;
 // Light position from main function
@@ -33,8 +35,8 @@ void main()
 	float specularLight = 0.50f;
 	vec3 viewDirection = normalize(camPos - currentPos);
 	vec3 reflectionDirection = reflect(-lightDirection, normal);
-	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 8);
+	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
 	float specular = specAmount * specularLight;
 
-	FragColor = texture(tex0, texCoord) * lightColor * (diffuse + ambient + specular);
+	FragColor = texture(tex0, texCoord) * lightColor * (diffuse + ambient) + (texture(tex1, texCoord).r * specular);
 }

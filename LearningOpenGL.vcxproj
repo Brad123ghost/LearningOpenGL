@@ -165,12 +165,14 @@
     <ClInclude Include="vbo.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\Downloads HDD\brick.png" />
-    <Image Include="..\..\Downloads HDD\stable.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="light.frag" />
     <None Include="light.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="brick.png" />
+    <Image Include="planks.png" />
+    <Image Include="planksSpec.png" />
+    <Image Include="stable.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
