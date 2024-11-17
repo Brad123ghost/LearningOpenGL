@@ -171,6 +171,12 @@
   <ItemGroup>
     <None Include="light.frag" />
     <None Include="light.vert" />
+    <Text Include="outlining.frag">
+      <FileType>Document</FileType>
+    </Text>
+    <Text Include="outlining.vert">
+      <FileType>Document</FileType>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Image Include="brick.png" />

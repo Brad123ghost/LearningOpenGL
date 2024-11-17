@@ -28,7 +28,7 @@ uniform mat4 scale;
 void main()
 {
 	// Calculates current pos
-	currentPos = vec3(model * translation * -rotation * scale * vec4(aPos, 1.0f));
+	currentPos = vec3(model * translation * rotation * scale * vec4(aPos, 1.0f));
 	// Assigns the normal from the vertex data to "Normal"
 	Normal = aNormal;
 	// Assigns the colors from Vertex data to "color"

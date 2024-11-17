@@ -36,6 +36,8 @@ int main()
 	// Generate shader object
 	Shader shaderProgram("default.vert", "default.frag");
 
+	Shader outliningProgram("outlining.vert", "outlining.frag");
+
 	// Lighting related things
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -52,7 +54,9 @@ int main()
 
 	// Enables Depth
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	//glDepthFunc(GL_LESS);
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
@@ -70,16 +74,31 @@ int main()
 		}
 
 		// Color of background
-		glClearColor(0.85f, 0.85f, 0.9f, 1.0f);
+		// glClearColor(0.85f, 0.85f, 0.9f, 1.0f);
+		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		// Clean back and depth buffer
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// Handle camera input
 		camera.Inputs(window, deltaTime);
 		// Update export cam matrix to Vertex Shader
 		camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
+		// Draw model
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 		model.Draw(shaderProgram, camera);
+
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+		outliningProgram.Activate();
+		glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 0.08f);
+		model.Draw(outliningProgram, camera);
+
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glEnable(GL_DEPTH_TEST);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);

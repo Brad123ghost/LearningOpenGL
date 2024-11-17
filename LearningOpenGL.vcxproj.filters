@@ -51,12 +51,21 @@
     <ClCompile Include="mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="default.vert">
       <Filter>Resource Files\Shaders</Filter>
     </Text>
     <Text Include="default.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </Text>
+    <Text Include="outlining.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </Text>
+    <Text Include="outlining.frag">
       <Filter>Resource Files\Shaders</Filter>
     </Text>
   </ItemGroup>
@@ -80,6 +89,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
