@@ -3,18 +3,30 @@
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 800;
 
-const unsigned int numWindows = 100;
-glm::vec3 positionsWin[numWindows];
-float rotationsWin[numWindows];
+//const unsigned int numWindows = 100;
+//glm::vec3 positionsWin[numWindows];
+//float rotationsWin[numWindows];
+//
+//unsigned int orderDraw[numWindows];
+//float distanceCamera[numWindows];
+//
+//int compare(const void* a, const void* b)
+//{
+//	double diff = distanceCamera[*(int*)b] - distanceCamera[*(int*)a];
+//	return (0 < diff) - (diff < 0);
+//}
 
-unsigned int orderDraw[numWindows];
-float distanceCamera[numWindows];
-
-int compare(const void* a, const void* b)
+float rectangleVertices[] =
 {
-	double diff = distanceCamera[*(int*)b] - distanceCamera[*(int*)a];
-	return (0 < diff) - (diff < 0);
-}
+	 // Coords	   // texCoords
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f, -1.0f,  0.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f,
+
+	 1.0f,  1.0f,  1.0f, 1.0f,
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f
+};
 
 int main()
 {
@@ -48,8 +60,9 @@ int main()
 
 	// Generate shader object
 	Shader shaderProgram("default.vert", "default.frag");
-	Shader grassProgram("default.vert", "grass.frag");
-	Shader winProgram("default.vert", "windows.frag");
+	Shader framebufferProgram("framebuffer.vert", "framebuffer.frag");
+	/*Shader grassProgram("default.vert", "grass.frag");
+	Shader winProgram("default.vert", "windows.frag");*/
 
 	// Outline shader object
 	//Shader outliningProgram("outlining.vert", "outlining.frag");
@@ -63,16 +76,30 @@ int main()
 	shaderProgram.Activate();
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	grassProgram.Activate();
+	framebufferProgram.Activate();
+	glUniform1i(glGetUniformLocation(framebufferProgram.ID, "screenTexture"), 0);
+	/*grassProgram.Activate();
 	glUniform4f(glGetUniformLocation(grassProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(grassProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	winProgram.Activate();
 	glUniform4f(glGetUniformLocation(winProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(winProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(winProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);*/
 
 	// Variables to help with rotation
 	float rotation = 0.0f;
 	double prevDTime = glfwGetTime();
+
+	// Prepare framebuffer rectangle VBO and VAO
+	unsigned int rectVAO, rectVBO;
+	glGenVertexArrays(1, &rectVAO);
+	glGenBuffers(1, &rectVBO);
+	glBindVertexArray(rectVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, rectVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), &rectangleVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 	// Variables for time
 	double prevTime = 0.0;
@@ -100,12 +127,14 @@ int main()
 
 	Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
-	Model grassModel("models/grass/scene.gltf");
+	Model model("models/map/scene.gltf");
+
+	/*Model grassModel("models/grass/scene.gltf");
 	Model groundModel("models/ground/scene.gltf");
-	Model windowsModel("models/windows/scene.gltf");
+	Model windowsModel("models/windows/scene.gltf");*/
 
 	// Randomize windows positions
-	for (unsigned int i = 0; i < numWindows; i++)
+	/*for (unsigned int i = 0; i < numWindows; i++)
 	{
 		positionsWin[i] = glm::vec3
 		(
@@ -115,7 +144,34 @@ int main()
 		);
 		rotationsWin[i] = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 1.0f));
 		orderDraw[i] = i;
+	}*/
+
+	unsigned int FBO;
+	glGenFramebuffers(1, & FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	unsigned int framebufferTexture;
+	glGenTextures(1, &framebufferTexture);
+	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+
+	unsigned int RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if(fboStatus != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Framebuffer is not complete" << std::endl;
 	}
+
 
 	// Mian while loop
 	while (!glfwWindowShouldClose(window))
@@ -140,11 +196,13 @@ int main()
 			prevDTime = currentTime;
 		}
 
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		// Color of background
 		// glClearColor(0.85f, 0.85f, 0.9f, 1.0f);
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		// Clean back and depth buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
 
 		// Handle camera input
 		camera.Inputs(window, deltaTime);
@@ -154,22 +212,31 @@ int main()
 		// Draw model
 		/*glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);*/
-		groundModel.Draw(shaderProgram, camera);
-		glDisable(GL_CULL_FACE);
-		grassModel.Draw(grassProgram, camera);
-		glEnable(GL_BLEND);
-		// Calculate distance from camera to windows
-		for (unsigned int i = 0; i < numWindows; i++)
-		{
-			distanceCamera[i] = glm::length(camera.Position - positionsWin[i]);
-		}
-		qsort(orderDraw, numWindows, sizeof(unsigned int), compare);
-		for (unsigned int i = 0; i < numWindows; i++)
-		{
-			windowsModel.Draw(winProgram, camera, positionsWin[orderDraw[i]], glm::quat(1.0f, 0.0f, rotationsWin[orderDraw[i]], 0.0f));
-		}
-		glDisable(GL_BLEND);
-		glEnable(GL_CULL_FACE);
+		model.Draw(shaderProgram, camera);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		framebufferProgram.Activate();
+		glBindVertexArray(rectVAO);
+		glDisable(GL_DEPTH_TEST);
+		glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		// Grass and windwows
+		//glDisable(GL_CULL_FACE);
+		//grassModel.Draw(grassProgram, camera);
+		//glEnable(GL_BLEND);
+		//// Calculate distance from camera to windows
+		//for (unsigned int i = 0; i < numWindows; i++)
+		//{
+		//	distanceCamera[i] = glm::length(camera.Position - positionsWin[i]);
+		//}
+		//qsort(orderDraw, numWindows, sizeof(unsigned int), compare);
+		//for (unsigned int i = 0; i < numWindows; i++)
+		//{
+		//	windowsModel.Draw(winProgram, camera, positionsWin[orderDraw[i]], glm::quat(1.0f, 0.0f, rotationsWin[orderDraw[i]], 0.0f));
+		//}
+		//glDisable(GL_BLEND);
+		//glEnable(GL_CULL_FACE);
 
 		/*glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
@@ -190,8 +257,8 @@ int main()
 
 	// Delete all the objects we've created
 	shaderProgram.Delete();
-	grassProgram.Delete();
-	winProgram.Delete();
+	/*grassProgram.Delete();
+	winProgram.Delete();*/
 	// Delete window before ending the program
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program
