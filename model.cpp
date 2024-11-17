@@ -74,6 +74,7 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix)
 			node["rotation"][2]
 		};
 		rotation = glm::make_quat(rotValues);
+		rotation.y = -rotation.y; // Flip the model on y-axis
 	}
 	// Get scale if it exists
 	glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);

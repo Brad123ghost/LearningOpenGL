@@ -36,7 +36,8 @@ int main()
 	// Generate shader object
 	Shader shaderProgram("default.vert", "default.frag");
 
-	Shader outliningProgram("outlining.vert", "outlining.frag");
+	// Outline shader object
+	//Shader outliningProgram("outlining.vert", "outlining.frag");
 
 	// Lighting related things
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -50,13 +51,26 @@ int main()
 
 	// Variables to help with rotation
 	float rotation = 0.0f;
-	double prevTime = glfwGetTime();
+	double prevDTime = glfwGetTime();
+
+	// Variables for time
+	double prevTime = 0.0;
+	double timeDiff;
+	unsigned int counter = 0;
 
 	// Enables Depth
 	glEnable(GL_DEPTH_TEST);
+	
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CW);
+
+	// Depth buffer
 	//glDepthFunc(GL_LESS);
-	glEnable(GL_STENCIL_TEST);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+	// Stencil outline
+	/*glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);*/
 
 	Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
@@ -65,12 +79,24 @@ int main()
 	// Mian while loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// Delta Time
-		double deltaTime = (glfwGetTime() - prevTime);
 		double currentTime = glfwGetTime();
-		if(currentTime - prevTime >= 1.0 / 60.0)
+		timeDiff = currentTime - prevTime;
+		counter++;
+		if (timeDiff >= 1.0 / 30.0)
 		{
+			std::string FPS = std::to_string((1.0 / timeDiff) * counter);
+			std::string ms = std::to_string((timeDiff / counter) * 1000.0);
+			std::string newTitle = "First OpenGL Window: " + FPS + " | ms: " + ms;
+			glfwSetWindowTitle(window, newTitle.c_str());
 			prevTime = currentTime;
+			counter = 0;
+		}
+
+		// Delta Time
+		double deltaTime = (glfwGetTime() - prevDTime);
+		if(currentTime - prevDTime >= 1.0 / 60.0)
+		{
+			prevDTime = currentTime;
 		}
 
 		// Color of background
@@ -85,11 +111,11 @@ int main()
 		camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
 		// Draw model
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
+		/*glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);*/
 		model.Draw(shaderProgram, camera);
 
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		/*glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
 		outliningProgram.Activate();
@@ -98,7 +124,7 @@ int main()
 
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_DEPTH_TEST);*/
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
