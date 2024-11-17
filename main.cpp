@@ -3,6 +3,19 @@
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 800;
 
+const unsigned int numWindows = 100;
+glm::vec3 positionsWin[numWindows];
+float rotationsWin[numWindows];
+
+unsigned int orderDraw[numWindows];
+float distanceCamera[numWindows];
+
+int compare(const void* a, const void* b)
+{
+	double diff = distanceCamera[*(int*)b] - distanceCamera[*(int*)a];
+	return (0 < diff) - (diff < 0);
+}
+
 int main()
 {
 	// Initialize GLFW
@@ -35,6 +48,8 @@ int main()
 
 	// Generate shader object
 	Shader shaderProgram("default.vert", "default.frag");
+	Shader grassProgram("default.vert", "grass.frag");
+	Shader winProgram("default.vert", "windows.frag");
 
 	// Outline shader object
 	//Shader outliningProgram("outlining.vert", "outlining.frag");
@@ -48,6 +63,12 @@ int main()
 	shaderProgram.Activate();
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	grassProgram.Activate();
+	glUniform4f(glGetUniformLocation(grassProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(grassProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	winProgram.Activate();
+	glUniform4f(glGetUniformLocation(winProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(winProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
 	// Variables to help with rotation
 	float rotation = 0.0f;
@@ -61,6 +82,7 @@ int main()
 	// Enables Depth
 	glEnable(GL_DEPTH_TEST);
 	
+	// Culling
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
@@ -72,9 +94,28 @@ int main()
 	/*glEnable(GL_STENCIL_TEST);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);*/
 
+	// Blending
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
 	Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
-	Model model("models/map/scene.gltf");
+	Model grassModel("models/grass/scene.gltf");
+	Model groundModel("models/ground/scene.gltf");
+	Model windowsModel("models/windows/scene.gltf");
+
+	// Randomize windows positions
+	for (unsigned int i = 0; i < numWindows; i++)
+	{
+		positionsWin[i] = glm::vec3
+		(
+			-15.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (15.0f - (-15.0f)))),
+			1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f - 1.0f))),
+			-15.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (15.0f - (-15.0f))))
+		);
+		rotationsWin[i] = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 1.0f));
+		orderDraw[i] = i;
+	}
 
 	// Mian while loop
 	while (!glfwWindowShouldClose(window))
@@ -113,7 +154,22 @@ int main()
 		// Draw model
 		/*glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);*/
-		model.Draw(shaderProgram, camera);
+		groundModel.Draw(shaderProgram, camera);
+		glDisable(GL_CULL_FACE);
+		grassModel.Draw(grassProgram, camera);
+		glEnable(GL_BLEND);
+		// Calculate distance from camera to windows
+		for (unsigned int i = 0; i < numWindows; i++)
+		{
+			distanceCamera[i] = glm::length(camera.Position - positionsWin[i]);
+		}
+		qsort(orderDraw, numWindows, sizeof(unsigned int), compare);
+		for (unsigned int i = 0; i < numWindows; i++)
+		{
+			windowsModel.Draw(winProgram, camera, positionsWin[orderDraw[i]], glm::quat(1.0f, 0.0f, rotationsWin[orderDraw[i]], 0.0f));
+		}
+		glDisable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
 
 		/*glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
@@ -134,7 +190,8 @@ int main()
 
 	// Delete all the objects we've created
 	shaderProgram.Delete();
-
+	grassProgram.Delete();
+	winProgram.Delete();
 	// Delete window before ending the program
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program

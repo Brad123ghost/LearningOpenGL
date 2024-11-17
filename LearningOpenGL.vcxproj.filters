@@ -102,6 +102,12 @@
     <None Include="light.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="grass.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="windows.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="brick.png">

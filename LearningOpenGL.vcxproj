@@ -169,8 +169,10 @@
     <ClInclude Include="vbo.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="grass.frag" />
     <None Include="light.frag" />
     <None Include="light.vert" />
+    <None Include="windows.frag" />
     <Text Include="outlining.frag">
       <FileType>Document</FileType>
     </Text>
