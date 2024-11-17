@@ -114,6 +114,12 @@
     <None Include="framebuffer.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="skybox.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="skybox.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="brick.png">
