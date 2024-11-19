@@ -8,14 +8,13 @@ layout (location = 2) in vec3 aColor;
 // Texture
 layout (location = 3) in vec2 aTex;
 
-// Output current pos to fragment shader
-out vec3 currentPos;
-// Output normal to fragment shader
-out vec3 Normal;
-// Output color for fragment shader
-out vec3 color;
-// Outputs texture coord to fragment shader
-out vec2 texCoord;
+out DATA
+{
+	vec3 Normal;
+	vec3 color;
+	vec2 texCoord;
+	mat4 projection;
+} data_out;
 
 // Import cam matrix from main function
 uniform mat4 camMatrix;
@@ -27,16 +26,10 @@ uniform mat4 scale;
 
 void main()
 {
-	// Calculates current pos
-	currentPos = vec3(model * translation * rotation * scale * vec4(aPos, 1.0f));
-	// Assigns the normal from the vertex data to "Normal"
-	Normal = aNormal;
-	// Assigns the colors from Vertex data to "color"
-	color = aColor;
-	// Assigns the texture coords from vertex data to "texCoord"
-	texCoord = mat2(0.0, -1.0, 1.0, 0.0) * aTex;
-
-	// Outputs position/coords of all vertices
-	gl_Position = camMatrix * vec4(currentPos, 1.0);
+	gl_Position = model * translation * rotation * scale * vec4(aPos, 1.0f);
+	data_out.Normal = aNormal;
+	data_out.color = aColor;
+	data_out.texCoord = mat2(0.0, -1.0, 1.0, 0.0) * aTex;
+	data_out.projection = camMatrix;
 }
 

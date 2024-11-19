@@ -94,8 +94,9 @@ int main()
 	glViewport(0, 0, WIDTH, HEIGHT);
 
 	// Generate shader object
-	Shader shaderProgram("default.vert", "default.frag");
-	Shader skyboxShader("skybox.vert", "skybox.frag");
+	Shader shaderProgram("default.vert", "default.frag", "default.geom");
+	Shader normalsShader("default.vert", "normals.frag", "normals.geom");
+	Shader skyboxShader("skybox.vert", "skybox.frag", "");
 	//Shader framebufferProgram("framebuffer.vert", "framebuffer.frag");
 	/*Shader grassProgram("default.vert", "grass.frag");
 	Shader winProgram("default.vert", "windows.frag");*/
@@ -166,7 +167,7 @@ int main()
 
 	Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
-	Model model("models/map/scene.gltf");
+	Model model("models/statue/scene.gltf");
 
 	/*Model grassModel("models/grass/scene.gltf");
 	Model groundModel("models/ground/scene.gltf");
@@ -313,9 +314,11 @@ int main()
 		/*glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);*/
 		model.Draw(shaderProgram, camera);
+		model.Draw(normalsShader, camera);
 
 		glDepthFunc(GL_LEQUAL);
 
+		// Skybox
 		skyboxShader.Activate();
 		glm::mat4 view = glm::mat4(1.0f);
 		glm::mat4 projection = glm::mat4(1.0f);

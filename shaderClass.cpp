@@ -18,13 +18,15 @@ std::string get_file_contents(const char* filename)
 }
 
 // Constructor that build the Shader Program from 2 different shaders
-Shader::Shader(const char* vertexFile, const char* fragmentFile)
+Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
 {
 	std::string vertexCode = get_file_contents(vertexFile);
 	std::string fragmentCode = get_file_contents(fragmentFile);
+	
 
 	const char* vertexSource = vertexCode.c_str();
 	const char* fragmentSource = fragmentCode.c_str();
+	
 
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexSource, NULL);
@@ -35,15 +37,36 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
 	glCompileShader(fragmentShader);
 	compileErrors(fragmentShader, "FRAGMENT");
+	
+	// Temp cheap way to use skybox
+	GLuint geometryShader = 0;
+	if (geometryFile[0] != '\0')
+	{
+		std::string geometryCode = get_file_contents(geometryFile);
+		const char* geometrySource = geometryCode.c_str();
+		geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geometryShader, 1, &geometrySource, NULL);
+		glCompileShader(geometryShader);
+		compileErrors(geometryShader, "GEOMETRY");
+	}
 
 	ID = glCreateProgram();
 	glAttachShader(ID, vertexShader);
 	glAttachShader(ID, fragmentShader);
+	if (geometryFile[0] != '\0')
+	{
+		glAttachShader(ID, geometryShader);
+	}
 	glLinkProgram(ID);
 	compileErrors(ID, "PROGRAM");
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	if (geometryFile[0] != '\0')
+	{
+		
+		glDeleteShader(geometryShader);
+	}
 }
 
 void Shader::Activate()

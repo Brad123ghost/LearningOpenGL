@@ -68,6 +68,12 @@
     <Text Include="outlining.frag">
       <Filter>Resource Files\Shaders</Filter>
     </Text>
+    <Text Include="default.geom">
+      <Filter>Resource Files\Shaders</Filter>
+    </Text>
+    <Text Include="normals.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderClass.h">
@@ -118,6 +124,9 @@
       <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include="skybox.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="normals.geom">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>
