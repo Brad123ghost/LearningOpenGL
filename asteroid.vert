@@ -7,6 +7,7 @@ layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec3 aColor;
 // Texture
 layout (location = 3) in vec2 aTex;
+layout (location = 4) in mat4 instanceMatrix;
 
 out DATA
 {
@@ -20,15 +21,11 @@ out vec3 currentPos;
 
 // Import cam matrix from main function
 uniform mat4 camMatrix;
-uniform mat4 model;
-uniform mat4 translation;
-uniform mat4 rotation;
-uniform mat4 scale;
 
 
 void main()
 {
-	currentPos = vec3(model * translation * rotation * scale * vec4(aPos, 1.0f));
+	currentPos = vec3(instanceMatrix * vec4(aPos, 1.0f));
 	data_out.Normal = aNormal;
 	data_out.color = aColor;
 	data_out.texCoord = mat2(0.0, -1.0, 1.0, 0.0) * aTex;

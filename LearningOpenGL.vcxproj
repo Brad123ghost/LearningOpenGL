@@ -170,6 +170,7 @@
     <ClInclude Include="vbo.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="asteroid.vert" />
     <None Include="framebuffer.frag" />
     <None Include="framebuffer.vert" />
     <None Include="grass.frag" />

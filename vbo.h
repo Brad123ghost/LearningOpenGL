@@ -21,6 +21,7 @@ public:
 	GLuint ID;
 	// Constructor that generates a Vertex Buffer Object and links it to vertices
 	VBO(std::vector<Vertex>& vertices);
+	VBO(std::vector<glm::mat4>& mat4s);
 	void Bind();
 	void Unbind();
 	void Delete();

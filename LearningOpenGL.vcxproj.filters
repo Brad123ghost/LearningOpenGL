@@ -129,6 +129,9 @@
     <None Include="normals.geom">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="asteroid.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="brick.png">

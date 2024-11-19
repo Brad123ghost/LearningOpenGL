@@ -1,4 +1,5 @@
 #include "model.h"
+#include <math.h>
 
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 800;
@@ -63,6 +64,11 @@ unsigned int skyboxIndices[] =
 	6, 2, 3
 };
 
+float randf()
+{
+	return -1.0f + (rand() / (RAND_MAX / 2.0f));
+}
+
 int main()
 {
 	// Initialize GLFW
@@ -95,8 +101,9 @@ int main()
 
 	// Generate shader object
 	Shader shaderProgram("default.vert", "default.frag", "default.geom");
-	Shader normalsShader("default.vert", "normals.frag", "normals.geom");
+	//Shader normalsShader("default.vert", "normals.frag", "normals.geom");
 	Shader skyboxShader("skybox.vert", "skybox.frag", "");
+	Shader asteroidShader("asteroid.vert", "default.frag", "default.geom");
 	//Shader framebufferProgram("framebuffer.vert", "framebuffer.frag");
 	/*Shader grassProgram("default.vert", "grass.frag");
 	Shader winProgram("default.vert", "windows.frag");*/
@@ -115,6 +122,9 @@ int main()
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	skyboxShader.Activate();
 	glUniform1i(glGetUniformLocation(shaderProgram.ID, "skybox"), 0);
+	asteroidShader.Activate();
+	glUniform4f(glGetUniformLocation(asteroidShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(asteroidShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
 	/*framebufferProgram.Activate();
 	glUniform1i(glGetUniformLocation(framebufferProgram.ID, "screenTexture"), 0);*/
@@ -167,7 +177,7 @@ int main()
 
 	Camera camera(WIDTH, HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
-	Model model("models/statue/scene.gltf");
+	Model model("models/jupiter/scene.gltf");
 
 	/*Model grassModel("models/grass/scene.gltf");
 	Model groundModel("models/ground/scene.gltf");
@@ -231,16 +241,19 @@ int main()
 	glBindVertexArray(0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-
+	// Skybox related tings :D
+	// Variables for skybox textures
+	std::string skyboxName = "space";
+	std::string fileType = ".png";
 	// All the faces of the cubemap (make sure they are in this exact order)
 	std::string facesCubemap[6] =
 	{
-		"skybox/right.jpg",
-		"skybox/left.jpg",
-		"skybox/top.jpg",
-		"skybox/bottom.jpg",
-		"skybox/front.jpg",
-		"skybox/back.jpg"
+		"skyboxes/" + skyboxName + "/right" + fileType,
+		"skyboxes/" + skyboxName + "/left" + fileType,
+		"skyboxes/" + skyboxName + "/top" + fileType,
+		"skyboxes/" + skyboxName + "/bottom" + fileType,
+		"skyboxes/" + skyboxName + "/front" + fileType,
+		"skyboxes/" + skyboxName + "/back" + fileType
 	};
 
 	// Creates the cubemap texture object
@@ -273,6 +286,61 @@ int main()
 			stbi_image_free(data);
 		}
 	}
+
+	// The number of asteroids to be created
+	const unsigned int number = 5000;
+	// Radius of circle around which asteroids orbit
+	float radius = 100.0f;
+	// How much ateroids deviate from the radius
+	float radiusDeviation = 25.0f;
+
+	// Holds all transformations for the asteroids
+	std::vector <glm::mat4> instanceMatrix;
+
+	for (unsigned int i = 0; i < number; i++)
+	{
+		// Generates x and y for the function x^2 + y^2 = radius^2 which is a circle
+		float x = randf();
+		float finalRadius = radius + randf() * radiusDeviation;
+		float y = ((rand() % 2) * 2 - 1) * sqrt(1.0f - x * x);
+
+		// Holds transformations before multiplying them
+		glm::vec3 tempTranslation;
+		glm::quat tempRotation;
+		glm::vec3 tempScale;
+
+		// Makes the random distribution more even
+		if (randf() > 0.5f)
+		{
+			// Generates a translation near a circle of radius "radius"
+			tempTranslation = glm::vec3(y * finalRadius, randf(), x * finalRadius);
+		}
+		else
+		{
+			// Generates a translation near a circle of radius "radius"
+			tempTranslation = glm::vec3(x * finalRadius, randf(), y * finalRadius);
+		}
+		// Generates random rotations
+		tempRotation = glm::quat(1.0f, randf(), randf(), randf());
+		// Generates random scales
+		tempScale = 0.1f * glm::vec3(randf(), randf(), randf());
+
+
+		// Initialize matrices
+		glm::mat4 trans = glm::mat4(1.0f);
+		glm::mat4 rot = glm::mat4(1.0f);
+		glm::mat4 sca = glm::mat4(1.0f);
+
+		// Transform the matrices to their correct form
+		trans = glm::translate(trans, tempTranslation);
+		rot = glm::mat4_cast(tempRotation);
+		sca = glm::scale(sca, tempScale);
+
+		// Push matrix transformation
+		instanceMatrix.push_back(trans * rot * sca);
+	}
+	// Create the asteroid model with instancing enabled
+	Model asteroid("models/asteroid/scene.gltf", number, instanceMatrix);
 
 	// Mian while loop
 	while (!glfwWindowShouldClose(window))
@@ -308,13 +376,16 @@ int main()
 		// Handle camera input
 		camera.Inputs(window, deltaTime);
 		// Update export cam matrix to Vertex Shader
-		camera.updateMatrix(45.0f, 0.1f, 100.0f);
+		camera.updateMatrix(45.0f, 0.1f, 1000.0f);
 
 		// Draw model
 		/*glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);*/
 		model.Draw(shaderProgram, camera);
-		model.Draw(normalsShader, camera);
+		//model.Draw(normalsShader, camera);
+
+		asteroid.Draw(asteroidShader, camera);
+
 
 		glDepthFunc(GL_LEQUAL);
 
